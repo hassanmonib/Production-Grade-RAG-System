@@ -4,6 +4,7 @@ Run: streamlit run ui/streamlit_dashboard.py
 Requires FastAPI backend: uvicorn api.main:app --reload
 
 Evaluation is implemented on the API only: POST /evaluate (see api/main.py).
+To set a stable doc_id at ingest, use POST /ingest with form field `doc_id` (e.g. curl or Postman).
 """
 
 from __future__ import annotations
@@ -57,11 +58,6 @@ with c2:
     ch_size = st.slider("Chunk size", 256, 1024, 512, 64)
 with c3:
     ch_overlap = st.slider("Chunk overlap", 0, 256, 64, 16)
-doc_id_opt = st.text_input(
-    "Optional stable doc_id (for evaluation labels)",
-    placeholder="e.g. employee-handbook",
-    help="If set, all chunks from this upload share this doc_id.",
-)
 upload = st.file_uploader("PDF, Markdown, or text", type=["pdf", "md", "txt", "markdown"])
 
 if upload and st.button("Ingest document"):
@@ -71,8 +67,6 @@ if upload and st.button("Ingest document"):
         "chunk_size": str(ch_size),
         "chunk_overlap": str(ch_overlap),
     }
-    if doc_id_opt.strip():
-        data["doc_id"] = doc_id_opt.strip()
     try:
         with httpx.Client(timeout=600.0) as client:
             r = client.post(f"{_base()}/ingest", files=files, data=data)
