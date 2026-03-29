@@ -1,0 +1,14 @@
+[
+  {
+    "query": "How far in advance must I request PTO?",
+    "relevant_doc_ids": ["employee-handbook"]
+  },
+  {
+    "query": "MFA requirement for contractors and renewal",
+    "relevant_doc_ids": ["security-overview"]
+  },
+  {
+    "query": "Which weekdays are mandatory in-office for hybrid staff?",
+    "relevant_doc_ids": ["employee-handbook"]
+  }
+]
