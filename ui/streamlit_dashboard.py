@@ -51,13 +51,23 @@ with st.sidebar:
 
 # --- 1 Ingestion ---
 st.header("1. Document ingestion")
-c1, c2, c3 = st.columns(3)
-with c1:
-    strat = st.selectbox("Chunking strategy", ["fixed", "sentence", "paragraph"])
-with c2:
-    ch_size = st.slider("Chunk size", 256, 1024, 512, 64)
-with c3:
-    ch_overlap = st.slider("Chunk overlap", 0, 256, 64, 16)
+with st.expander("Advanced chunking", expanded=False):
+    st.caption("Defaults are fine for most uploads. Open here to change strategy, size, or overlap.")
+    ic1, ic2, ic3 = st.columns(3)
+    with ic1:
+        strat = st.selectbox(
+            "Chunking strategy",
+            ["fixed", "sentence", "paragraph"],
+            key="ingest_chunk_strategy",
+        )
+    with ic2:
+        ch_size = st.slider("Chunk size", 256, 1024, 512, 64, key="ingest_chunk_size")
+    with ic3:
+        ch_overlap = st.slider("Chunk overlap", 0, 256, 64, 16, key="ingest_chunk_overlap")
+
+st.caption(
+    f"**Chunking in use:** `{strat}` · chunk size **{ch_size}** · overlap **{ch_overlap}**"
+)
 upload = st.file_uploader("PDF, Markdown, or text", type=["pdf", "md", "txt", "markdown"])
 
 if upload and st.button("Ingest document"):
