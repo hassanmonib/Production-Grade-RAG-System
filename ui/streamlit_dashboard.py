@@ -93,14 +93,45 @@ st.divider()
 
 # --- 2 Query ---
 st.header("2. Query & retrieval configuration")
-qcol1, qcol2 = st.columns([2, 1])
-with qcol1:
-    question = st.text_area("Question", height=100, placeholder="Ask about your ingested corpus…")
-with qcol2:
-    top_k = st.slider("Top-k (vector & BM25 each)", 5, 40, 20)
-    alpha = st.slider("Fusion α (vector weight)", 0.0, 1.0, 0.5, 0.05)
-    use_rr = st.toggle("Cross-encoder re-rank", value=True)
-    display_chunk_cfg = st.slider("Chunk size (display only)", 256, 1024, 512, 64)
+question = st.text_area("Question", height=100, placeholder="Ask about your ingested corpus…")
+
+with st.expander("Advanced retrieval", expanded=False):
+    st.caption(
+        "Defaults match the API. Change top-k, vector/BM25 balance (α), re-rank, or the display-only chunk hint."
+    )
+    qa, qb = st.columns(2)
+    with qa:
+        top_k = st.slider(
+            "Top-k (vector & BM25 each)",
+            5,
+            40,
+            20,
+            key="query_top_k",
+        )
+        alpha = st.slider(
+            "Fusion α (vector weight)",
+            0.0,
+            1.0,
+            0.5,
+            0.05,
+            key="query_alpha",
+        )
+    with qb:
+        use_rr = st.toggle("Cross-encoder re-rank", value=True, key="query_use_rerank")
+        display_chunk_cfg = st.slider(
+            "Chunk size (display only)",
+            256,
+            1024,
+            512,
+            64,
+            key="query_chunk_display",
+        )
+
+rr_note = "on" if use_rr else "off"
+st.caption(
+    f"**Retrieval in use:** top-k **{top_k}** · fusion α **{alpha:.2f}** · "
+    f"re-rank **{rr_note}** · chunk size (display) **{display_chunk_cfg}**"
+)
 
 run_query = st.button("Run retrieval + generation", type="primary")
 
