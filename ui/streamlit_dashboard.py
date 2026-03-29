@@ -2,6 +2,8 @@
 Retrieval engineering dashboard (not a chat UI).
 Run: streamlit run ui/streamlit_dashboard.py
 Requires FastAPI backend: uvicorn api.main:app --reload
+
+Evaluation is implemented on the API only: POST /evaluate (see api/main.py).
 """
 
 from __future__ import annotations
@@ -21,7 +23,7 @@ st.set_page_config(
 )
 
 st.title("Hybrid RAG — Retrieval engineering dashboard")
-st.caption("Inspect hybrid retrieval, fusion, re-ranking, and evaluation — not a conversational UI.")
+st.caption("Inspect hybrid retrieval, fusion, and re-ranking — not a conversational UI.")
 
 
 def _base() -> str:
@@ -165,41 +167,3 @@ if "last_query" in st.session_state:
     ]
     for i, p in enumerate(previews, start=1):
         st.markdown(f"**[{i}]** {p}")
-
-st.divider()
-
-# --- 5 Evaluation ---
-st.header("5. Evaluation")
-st.caption("Uses `data/eval_dataset.json` and **relevant_doc_ids** matching your stable doc_id labels.")
-if st.button("Run evaluation"):
-    try:
-        with httpx.Client(timeout=600.0) as client:
-            r = client.post(f"{_base()}/evaluate?k=5")
-            r.raise_for_status()
-            ev = r.json()
-        st.session_state["last_eval"] = ev
-    except Exception as e:  # noqa: BLE001
-        st.error(str(e))
-
-if "last_eval" in st.session_state:
-    ev = st.session_state["last_eval"]
-    det = ev.get("details") or {}
-    if det.get("evaluated") == 0:
-        st.warning(
-            det.get("hint")
-            or "No queries were evaluated — labels did not match any ingested `doc_id`."
-        )
-        if det.get("doc_ids_in_index"):
-            st.caption(f"**doc_id values currently in the index:** {det['doc_ids_in_index']}")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Precision@k (hybrid+rerank)", f"{ev['precision_at_k']:.3f}")
-    c2.metric("Recall@k", f"{ev['recall_at_k']:.3f}")
-    c3.metric("MRR", f"{ev['mrr']:.3f}")
-    c4.metric("Hallucination rate (proxy)", f"{ev['hallucination_rate']:.3f}")
-
-    comp = pd.DataFrame(ev["comparison"])
-    st.subheader("Vector vs hybrid vs hybrid + re-rank")
-    st.bar_chart(comp.set_index("method")[["precision_at_k", "recall_at_k", "mrr"]])
-
-    st.dataframe(comp, use_container_width=True, hide_index=True)
-    st.json(ev.get("details", {}))
